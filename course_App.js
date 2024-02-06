@@ -31,9 +31,29 @@ app.post('/admin/signup',(req,res) =>{
 })
 
 app.post('/admin/login',adminAuth,(req,res) =>{
-    res.json({message:"admin login sucessfully"})
+    res.json({message:"admin login successfully"})
 })
 
+app.post('/admin/courses',adminAuth,(req,res)=>{
+    const course = req.body;
+    course.id = Date.now();
+    COURSES.push(course);
+    res.json({message:"course is added successfully"})
+})
+app.put('/admin/courses/:coursesId',adminAuth,(req,res)=>{
+    const coursesId = parseInt(req.params.coursesId);
+    const course = COURSES.find(c=> c.id === coursesId)
+    if(course){
+        Object.assign(course,req.body);
+        res.json({message : "course updated succcessfully"})
+    }
+    else{
+        res.json({message:"course is not found"})
+    }
+})
+app.get('/admin/courses',adminAuth,(req,res)=>{
+    res.json({courses:COURSES})
+})
 app.listen(3000,() =>{
     console.log("server running at port 3000")
 })
