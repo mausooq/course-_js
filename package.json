@@ -2,10 +2,10 @@
   "name": "course",
   "version": "1.0.0",
   "description": "",
-  "main": "auth.js",
+  "main": "course_App.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon auth.js"
+    "start": "nodemon course_App.js"
   },
   "keywords": [],
   "author": "",
