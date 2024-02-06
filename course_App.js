@@ -18,6 +18,18 @@ const adminAuth =(req,res,next) => {
         res.status(404).json({message:"Admin authentication failed"});
     }
 }
+const userAuth =(req,res,next) => {
+    const {username,password} = req.headers;
+    const user = USERS.find(u => u.username === username && u.password === password);
+    if(user){
+        req.user=user;
+        next();
+    }
+    else{
+        res.status(404).json({message:"User authentication failed"});
+    }
+}
+
 app.post('/admin/signup',(req,res) =>{
     const admin= req.body;
     const adminExist = ADMINS.find(a => a.username === admin.username);
@@ -54,6 +66,41 @@ app.put('/admin/courses/:coursesId',adminAuth,(req,res)=>{
 app.get('/admin/courses',adminAuth,(req,res)=>{
     res.json({courses:COURSES})
 })
+
+app.post('/users/signup',(req,res) =>{
+    const user = {...req.body,purchasedCourses:[]};
+    const userExist = USERS.find(u => u.username === user.username);
+    if(userExist){
+        res.status(403).json({message:"user alerdy exist"})    
+    }
+    else{
+        USERS.push(user);
+        res.json({message:"signup sucessfull"})
+    }
+})
+app.post('/users/login',userAuth,(req,res) =>{
+    res.json({message:"user login successfully"})
+})
+app.get('/users/courses',userAuth,(req,res) =>{
+     const filteredCourse = COURSES.find(c => c.published);
+     res.json(filteredCourse);
+})
+app.post('/users/courses/:courseId',userAuth, (req,res)=>{
+    const courseId = parseInt(req.params.courseId);
+    const course = COURSEs.find(c=>c.id === courseId && c.published );
+    if(course){
+        req.user.purchasedCourses.push(courseId);
+        res.json({message:"course is buyed successfully"}) 
+    }
+    else 
+    {
+        res.status(404).jsom({message:'copurse is not found or not published'})
+    }
+})
+app.get('/users/purchasedCourses',userAuth,(req,res) =>{
+    const purchasedCourses = COURSES.filter(c => req.user.purchasedCourses.include(c.id));
+    res.json({message:purchasedCourses});
+});
 app.listen(3000,() =>{
     console.log("server running at port 3000")
 })
