@@ -87,7 +87,7 @@ app.get('/users/courses',userAuth,(req,res) =>{
 })
 app.post('/users/courses/:courseId',userAuth, (req,res)=>{
     const courseId = parseInt(req.params.courseId);
-    const course = COURSEs.find(c=>c.id === courseId && c.published );
+    const course = COURSES.find(c=>c.id === courseId && c.published );
     if(course){
         req.user.purchasedCourses.push(courseId);
         res.json({message:"course is buyed successfully"}) 
@@ -98,7 +98,7 @@ app.post('/users/courses/:courseId',userAuth, (req,res)=>{
     }
 })
 app.get('/users/purchasedCourses',userAuth,(req,res) =>{
-    const purchasedCourses = COURSES.filter(c => req.user.purchasedCourses.include(c.id));
+    const purchasedCourses = COURSES.filter(c => req.user.purchasedCourses);
     res.json({message:purchasedCourses});
 });
 app.listen(3000,() =>{
