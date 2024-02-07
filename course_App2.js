@@ -13,12 +13,12 @@ let COURSES = [];
 
 try {
     ADMINS = JSON.parse(fs.readFileSync('admins.json', 'utf8'))
-    // USERS = JSON.parse(fs.readFileSync('users.json', 'utf8'))
+    USERS = JSON.parse(fs.readFileSync('users.json', 'utf8'))
     COURSES = JSON.parse(fs.readFileSync('courses.json', 'utf8'))
 
 } catch{
     ADMINS = [];
-//     USERS = [];
+    USERS = [];
     COURSES = [];
 }
 // console.log(USERS);
@@ -90,6 +90,65 @@ app.put('/admin/courses/:id',authorizationJwt,(req,res) =>{
 })
 app.get('/admin/courses',authorizationJwt,(req,res) =>{
     res.json({course:COURSES})
+})
+app.post('/users/signup',(req,res) =>{
+    const {username,password}  = req.body;
+    const userExist = USERS.find(x=> x.username === username);
+    if(userExist){
+        res.status(403).json({message:'user  already exist'});
+    }
+    else{
+        const newUser ={username,password,id:USERS .length+1};
+        USERS.push(newUser);
+        fs.writeFileSync('users.json',JSON.stringify(USERS));
+        const token = jwt.sign({username,role:"user"},SECRET,{expiresIn: '1h'})
+        res.json({message:"user register successfull ",token})
+    }
+});
+app.post('/users/login',(req,res)=>{
+    const {username, password}= req.headers;
+    // console.log(username,password)
+    const user = USERS.find(x=> x.username === username && x.password === password );
+    if(user){
+        const token = jwt.sign({username, role : "user" },SECRET ,{ expiresIn: '1h' })
+        return res.status(200).send({ message: "welcome back", token});
+    }
+    else{
+        res.status(403).json('INVALID USERNAME OR PASSWORD')
+    }
+})
+app.get('/users/courses',authorizationJwt,(req,res) =>{
+    res.json({course:COURSES})
+})
+app.post('/users/courses/:courseId',authorizationJwt, (req,res)=>{
+   const courseId = parseInt(req.params.courseId)
+    const course = COURSES.find(c => c.id === courseId);
+    if(course){
+        const user =USERS.find(x => x.username === req.user.username)
+        if(user){
+            if(!user.purchasedCourse){
+                user.purchasedCourse =[];
+            }
+            user.purchasedCourse.push(course);
+            fs.writeFileSync('users.json', JSON.stringify(USERS))
+            res.json({ message: 'Course purchased successfully' });
+        }
+        else{
+            res.json({message:'user is not found'})
+        }
+    }
+    else{
+        res.json({message:'course is not found'})
+    }
+})
+app.get('/users/purchasedCourses',authorizationJwt,(req,res) =>{
+    const user =  USERS.find(u => u.username===req.user.username)
+    if(user){
+        res.json({purchasedCourse:user.purchasedCourse})
+    }
+    else{
+        res.json({message: 'User Not Found'})
+    }
 })
 app.listen(3000,() =>{
     console.log('server is runnig on port 3000')

@@ -94,7 +94,7 @@ app.post('/users/courses/:courseId',userAuth, (req,res)=>{
     }
     else 
     {
-        res.status(404).jsom({message:'copurse is not found or not published'})
+        res.status(404).jsom({message:'course is not found or not published'})
     }
 })
 app.get('/users/purchasedCourses',userAuth,(req,res) =>{
