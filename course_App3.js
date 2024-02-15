@@ -37,9 +37,9 @@ const authenticateJwt = (req,res,next) => {
     const auth = req.headers.authorization
     if(auth){
         const token = auth.split(" ")[1]
-        jwt.veerfiy(token,secert,(err,user)=>{
+        jwt.verify(token,secert,(err,user)=>{
             if(err) 
-                err
+                return err
             else
                 req.user= user
                 next();
@@ -64,7 +64,7 @@ app.post('/admin/signup',async (req,res) => {
 })
 
 app.post('/admin/login', async (req,res) =>{
-    const {username,password} = req.headers;
+    const {username,password} = req.body;
     const adminExist = await Admin.findOne(username,password);
     if(adminExist){
         const token = jwt.sign({username,role:"admin"},secert,{expiresIn : '1h'})
@@ -75,9 +75,26 @@ app.post('/admin/login', async (req,res) =>{
     }
 })
 
-app.post('/admin/course',authenticateJwt, async (req,res) =>{
+app.post('/admin/courses',authenticateJwt, async (req,res) =>{
     const course = new Course(req.body)
-    await Course.save();
-    res.json(course)
+    await course.save();
+    res.json({message:"new course is added",course})
 }) 
+
+app.put('admin/courses/:courseId', authenticateJwt, async (req,res)=>{
+    const course = await Course.findByIdAndUpdate(req.params.courseId,req.body,{newm:'true'})
+    console.log(course);
+    if(course){
+        res.json({message: "Course updated Successfully!"})
+    }
+    else{
+        res.json({message: "Course updated Successfully!"})
+    }
+}
+)
+
+app.get('/admin/courses', authenticateJwt,async (req,res)=>{
+    const  courses = await Course.find()
+    res.json(courses)
+})
 app.listen(3000, (username) => console.log("Server is running on port 3000"));
